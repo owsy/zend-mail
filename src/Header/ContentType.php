@@ -42,19 +42,18 @@ class ContentType implements UnstructuredInterface
         }
 
         $value  = str_replace(Headers::FOLDING, ' ', $value);
-        $values = preg_split('#\s*;\s*#', $value);
+        $parts = explode(';', $value, 2);
 
-        $type   = array_shift($values);
         $header = new static();
-        $header->setType($type);
+        $header->setType($parts[0]);
 
-        // Remove empty values
-        $values = array_filter($values);
+        if (isset($parts[1])) {
+            parse_str(str_replace('";', '"&', $parts[1]), $values);
 
-        foreach ($values as $keyValuePair) {
-            list($key, $value) = explode('=', $keyValuePair, 2);
-            $value = trim($value, "'\" \t\n\r\0\x0B");
-            $header->addParameter($key, $value);
+            foreach ($values as $key => $value) {
+                $value = trim($value, "'\" \t\n\r\0\x0B");
+                $header->addParameter($key, $value);
+            }
         }
 
         return $header;
